@@ -7,6 +7,23 @@
 public class FibonacciHeap
 {
 	public HeapNode min;
+	private int HeapSize;
+	private HeapNode first;
+	private int HeapNumTrees;
+	
+	
+	/**
+	 *
+	 * Constructor to initialize an empty heap.
+	 *
+	 */
+	public FibonacciHeap()
+	{
+		this.HeapSize = 0;
+		this.first = null;
+		this.min = null;
+		this.HeapNumTrees = 0;
+	}
 
 	/**
 	 * 
@@ -17,7 +34,31 @@ public class FibonacciHeap
 	 */
 	public HeapNode insert(int key, String info) 
 	{    
-		return null; // should be replaced by student code
+		HeapNode newNode = new HeapNode(key,info);
+	    
+	    // אם ההיפ ריק
+	    if (min == null) {
+	        min = newNode;
+	        first = newNode; // הצומת הראשון בהיפ
+	    } else {
+	        // הוספת הצומת לרשימת השורשים
+	        newNode.next = first;
+	        newNode.prev = first.prev;
+	        first.prev.next = newNode;
+	        first.prev = newNode;
+	        // עדכון הראשון (לשמור על first)
+	        first = newNode;
+	        // עדכון המינימום אם המפתח של הצומת החדש קטן מהמינימום
+	        if (key < min.key) {
+	            min = newNode;
+	        }
+	    }
+
+	    // עדכון גודל ההיפ ומספר העצים
+	    HeapSize++;
+	    HeapNumTrees++;
+
+	    return newNode;
 	}
 
 	/**
@@ -27,7 +68,7 @@ public class FibonacciHeap
 	 */
 	public HeapNode findMin()
 	{
-		return null; // should be replaced by student code
+		return this.min; // should be replaced by student code
 	}
 
 	/**
@@ -37,9 +78,17 @@ public class FibonacciHeap
 	 */
 	public void deleteMin()
 	{
-		return; // should be replaced by student code
+		deleteMin(true);
 
 	}
+	
+	
+	public void deleteMin(boolean doesOGmin)
+	{
+		return; //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש 
+		// אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
+	}
+	
 
 	/**
 	 * 
@@ -60,10 +109,33 @@ public class FibonacciHeap
 	 */
 	public void delete(HeapNode x) 
 	{    
-		return; // should be replaced by student code
+		if (x == null) {
+	        return;
+	    }
+		
+		// אם הצומת הוא המינימום
+	    if(this.min.key==x.key) {
+	    	// הסרת המינימום
+	    	deleteMin();
+	    	
+	    } else {
+	    	
+	    	HeapNode OGmin = this.min;
+	    	
+	    	// להפחית את המפתח של הצומת ל-Integer.MIN_VALUE כדי שיהפוך למינימום
+	        decreaseKey(x, x.key - Integer.MIN_VALUE);
+	        // מחיקת צומת שהיא לא מינימום אמיתי
+	        deleteMin(false);
+	        this.min = OGmin;
+	    }
+	
+	    
+	    
+	    
 	}
+	
 
-
+	
 	/**
 	 * 
 	 * Return the total number of links.
@@ -103,7 +175,7 @@ public class FibonacciHeap
 	 */
 	public int size()
 	{
-		return 42; // should be replaced by student code
+		return this.HeapSize;
 	}
 
 
@@ -114,7 +186,7 @@ public class FibonacciHeap
 	 */
 	public int numTrees()
 	{
-		return 0; // should be replaced by student code
+		return this.HeapSize;
 	}
 
 	/**
@@ -130,5 +202,15 @@ public class FibonacciHeap
 		public HeapNode parent;
 		public int rank;
 		public boolean mark;
+		
+		public HeapNode(int key, String info) {
+			this.key = key;
+			this.info = info;
+			this.next = this;
+			this.prev = this;
+			this.mark = false;
+			this.rank = 0;
+			this.child = null;
+		}
 	}
 }
