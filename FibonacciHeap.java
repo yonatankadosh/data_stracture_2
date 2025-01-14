@@ -7,9 +7,9 @@
 public class FibonacciHeap
 {
 	public HeapNode min;
-	private int HeapSize;
-	private HeapNode first;
-	private int HeapNumTrees;
+	public int HeapSize;
+	public HeapNode first;
+	public int HeapNumTrees;
 	
 	
 	/**
@@ -35,8 +35,15 @@ public class FibonacciHeap
 	public HeapNode insert(int key, String info) 
 	{    
 		HeapNode newNode = new HeapNode(key,info);
-	    
-	    // אם ההיפ ריק
+		insert(newNode);
+	    // עדכון גודל ההיפ 
+	    HeapSize++;
+	    return newNode;
+	}
+	
+	public HeapNode insert(HeapNode newNode) {
+		
+		// אם ההיפ ריק
 	    if (min == null) {
 	        min = newNode;
 	        first = newNode; // הצומת הראשון בהיפ
@@ -49,16 +56,13 @@ public class FibonacciHeap
 	        // עדכון הראשון (לשמור על first)
 	        first = newNode;
 	        // עדכון המינימום אם המפתח של הצומת החדש קטן מהמינימום
-	        if (key < min.key) {
+	        if (newNode.key < min.key) {
 	            min = newNode;
 	        }
 	    }
-
-	    // עדכון גודל ההיפ ומספר העצים
-	    HeapSize++;
+		
 	    HeapNumTrees++;
-
-	    return newNode;
+		return newNode;
 	}
 
 	/**
