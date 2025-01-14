@@ -97,10 +97,106 @@ public class FibonacciHeap
 	 */
 	private void deleteMin(boolean doesOGmin)
 	{
-		return; //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש 
-		// אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
+		// מחיקה מערימה ריקה - מקרה קצה
+		if (this.min == null) {
+        return; 
+		}
+		if (this.min.child != null) {
+        HeapNode child = this.min.child;
+        do {
+            child.parent = null; // ניתוק מהצומת הנמחקת
+            child = child.next;
+        } while (child != this.min.child);
+
+        // הוספת הילדים לרשימת השורשים של הצומת הנמחקת
+        mergeRootLists(this.min, this.min.child);
+
+    }
+		// מחיקת הצומת
+		removeFromRootList(this.min);
+
+		if (doesOGmin=true){
+			this.consolidating();
+			this.updateMin(); // צריך להוסיף את הפונקציה הזאת
+		}
+
+		this.HeapSize--;
+            //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש
+            // אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
 	}
 	
+	// פונקציות עזר למחיקה
+	/**
+	 * חיבור שתי רשימות שורשים
+	 */
+	private void mergeRootLists(HeapNode node1, HeapNode node2) {
+		if (node1 == null || node2 == null) {
+			return; // מקרה קצה - אחד הרשימות ריקה
+		}
+
+		HeapNode temp = node1.next;
+		node1.next = node2.next;
+		node2.next.prev = node1;
+		node2.next = temp;
+		temp.prev = node2;
+	}
+	/**
+	 * מחיקת צומת ע״י שינוי מצביעים
+	 */
+	private void removeFromRootList(HeapNode node) {
+		if (node == node.next) {
+			// מחיקת הצומת היחיד ברשימה
+			first = null;
+		} else {
+			node.prev.next = node.next;
+			node.next.prev = node.prev;
+			if (first == node) {
+				first = node.next; // עדכון הצומת הראשון אם נדרש
+			}
+ 		}	
+	}
+
+
+	/**
+	 * חיבור עצים מדרגות שוות ע״פ המפתח
+	 */
+	private void linkNodes(HeapNode child, HeapNode parent) {
+		removeFromRootList(child);
+		child.parent = parent;
+
+		if (parent.child == null) {
+			parent.child = child;
+			child.next = child;
+			child.prev = child;
+		} else {
+			child.next = parent.child.next;
+			child.prev = parent.child;
+			parent.child.next.prev = child;
+			parent.child.next = child;
+		}
+
+		parent.rank++;
+		child.mark = false;
+		this.HeapTotalLinks++;
+	}
+
+
+	/**
+	 * עדכון המצביע למינימום
+	 */
+	private void updateMin(){
+		HeapNode current = first;
+		do {
+        	if (this.min != null) {
+            	if (this.min == null || current.key < min.key) {
+                	this.min = current;
+            	}}
+        	current = current.next;
+		} while (current != first);
+	}
+	
+
+
 
 	/**
 	 * 
@@ -254,6 +350,7 @@ public class FibonacciHeap
 	{
 		return this.HeapSize;
 	}
+
 
 	/**
 	 * Class implementing a node in a Fibonacci Heap.
