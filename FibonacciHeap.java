@@ -10,6 +10,8 @@ public class FibonacciHeap
 	public int HeapSize;
 	public HeapNode first;
 	public int HeapNumTrees;
+	public int HeapTotalLinks;
+	public int HeapTotalCuts;
 	
 	
 	/**
@@ -23,6 +25,8 @@ public class FibonacciHeap
 		this.first = null;
 		this.min = null;
 		this.HeapNumTrees = 0;
+		this.HeapTotalLinks = 0;
+		this.HeapTotalCuts = 0;
 	}
 
 	/**
@@ -41,7 +45,7 @@ public class FibonacciHeap
 	    return newNode;
 	}
 	
-	public HeapNode insert(HeapNode newNode) {
+	private HeapNode insert(HeapNode newNode) {
 		
 		// אם ההיפ ריק
 	    if (min == null) {
@@ -72,7 +76,7 @@ public class FibonacciHeap
 	 */
 	public HeapNode findMin()
 	{
-		return this.min; // should be replaced by student code
+		return this.min; 
 	}
 
 	/**
@@ -86,8 +90,12 @@ public class FibonacciHeap
 
 	}
 	
-	
-	public void deleteMin(boolean doesOGmin)
+	/**
+	 * 
+	 * Delete the minimal item
+	 * if doesOGmin is true do Consolidating and minimum update, else don't
+	 */
+	private void deleteMin(boolean doesOGmin)
 	{
 		return; //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש 
 		// אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
@@ -103,8 +111,62 @@ public class FibonacciHeap
 	 */
 	public void decreaseKey(HeapNode x, int diff) 
 	{    
-		return; // should be replaced by student code
+		// הפחתת המפתח של הצומת
+	    x.key = x.key - diff;
+
+	    HeapNode parent = x.parent;
+
+	    // אם לצומת יש הורה והמפתח החדש קטן מהמפתח של ההורה
+	    if (parent != null && x.key < parent.key) {
+	        // חיתוך הצומת מההורה
+	        cut(x, parent);
+
+	        // אם ההורה מסומן, מבצעים חיתוך מדורג עליו
+	        if (parent.mark) {
+	            cascading_cut(parent, parent.parent);
+	        } else {
+	            // אם זו הפעם הראשונה שההורה מאבד ילד, מסמנים אותו
+	            parent.mark = true;
+	        }
+	    } else {
+	    	// עדכון המינימום אם המפתח החדש של הצומת קטן מהמינימום הנוכחי
+	    	if (x.key < min.key) {
+	    		min = x;
+	    	}
+	    }
 	}
+	
+	private void cut(HeapNode x, HeapNode y) {
+		this.HeapTotalCuts++;
+		x.parent = null;
+		x.mark = false;
+		y.rank = y.rank -1 ;
+		// אם איו לצומת ההורה עוד ילדים
+		if (x.next==x) {
+			y.child = null;
+		}
+		// אם יש עוד ילדים
+		else {
+			y.child = x.next;
+			x.prev.next = x.next;
+			x.next.prev = x.prev;
+		}
+		
+		// הוספת הצומת לרשימת השורשים
+	    insert(x);
+	}
+	
+	private void cascading_cut(HeapNode x, HeapNode y) {
+		cut(x,y);
+		if(y.parent!=null) {
+			if (y.mark==false) {
+				y.mark = true;
+			} else {
+				cascading_cut(y,y.parent);
+			}
+		}
+	}
+	
 
 	/**
 	 * 
@@ -118,7 +180,7 @@ public class FibonacciHeap
 	    }
 		
 		// אם הצומת הוא המינימום
-	    if(this.min.key==x.key) {
+	    if(this.min == x ) {
 	    	// הסרת המינימום
 	    	deleteMin();
 	    	
@@ -147,7 +209,7 @@ public class FibonacciHeap
 	 */
 	public int totalLinks()
 	{
-		return 0; // should be replaced by student code
+		return this.HeapTotalLinks; 
 	}
 
 
@@ -158,7 +220,7 @@ public class FibonacciHeap
 	 */
 	public int totalCuts()
 	{
-		return 0; // should be replaced by student code
+		return this.HeapTotalCuts; 
 	}
 
 
