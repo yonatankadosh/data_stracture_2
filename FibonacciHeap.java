@@ -116,7 +116,7 @@ public class FibonacciHeap
 		removeFromRootList(this.min);
 
 		if (doesOGmin=true){
-			this.consolidating();
+			this.consolidate();
 			this.updateMin(); // צריך להוסיף את הפונקציה הזאת
 		}
 
@@ -180,6 +180,46 @@ public class FibonacciHeap
 		this.HeapTotalLinks++;
 	}
 
+	/**
+	 * Consolidates the root list to ensure unique degrees for all trees.
+	 */
+	private void consolidate() {
+		int arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1;
+		HeapNode[] rankTable = new HeapNode[arraySize];
+
+		HeapNode current = first;
+		int numRoots = 0;
+
+		// Count the number of nodes in the root list
+		do {
+			numRoots++;
+			current = current.next;
+		} while (current != first);
+
+		while (numRoots > 0) {
+			int rank = current.rank;
+			HeapNode next = current.next;
+
+			// Merge trees with the same degree
+			while (rankTable[rank] != null) {
+				HeapNode other = rankTable[rank];
+
+				if (current.key > other.key) {
+					HeapNode temp = current;
+					current = other;
+					other = temp;
+				}
+
+				linkNodes(other, current);
+				rankTable[rank] = null;
+				rank++;
+			}
+
+			rankTable[rank] = current;
+			current = next;
+			numRoots--;
+		}
+	}
 
 	/**
 	 * עדכון המצביע למינימום
