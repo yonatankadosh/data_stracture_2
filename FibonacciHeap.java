@@ -106,21 +106,25 @@ public class FibonacciHeap
         do {
             child.parent = null; // ניתוק מהצומת הנמחקת
             child = child.next;
+			child.mark = false; // לבדוק אם צריך את זה
+			this.HeapTotalCuts++;
         } while (child != this.min.child);
 
         // הוספת הילדים לרשימת השורשים של הצומת הנמחקת
         mergeRootLists(this.min, this.min.child);
+		this.HeapNumTrees = this.HeapNumTrees + this.min.rank;
 
     }
+
 		// מחיקת הצומת
 		removeFromRootList(this.min);
+		this.HeapSize--;
 
 		if (doesOGmin=true){
 			this.consolidate();
-			this.updateMin(); // צריך להוסיף את הפונקציה הזאת
+			this.updateMin();
 		}
 
-		this.HeapSize--;
             //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש
             // אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
 	}
@@ -140,6 +144,7 @@ public class FibonacciHeap
 		node2.next = temp;
 		temp.prev = node2;
 	}
+
 	/**
 	 * מחיקת צומת ע״י שינוי מצביעים
 	 */
@@ -147,6 +152,7 @@ public class FibonacciHeap
 		if (node == node.next) {
 			// מחיקת הצומת היחיד ברשימה
 			first = null;
+			this.min = null;
 		} else {
 			node.prev.next = node.next;
 			node.next.prev = node.prev;
@@ -154,6 +160,7 @@ public class FibonacciHeap
 				first = node.next; // עדכון הצומת הראשון אם נדרש
 			}
  		}	
+		this.HeapNumTrees--;
 	}
 
 
@@ -176,15 +183,16 @@ public class FibonacciHeap
 		}
 
 		parent.rank++;
-		child.mark = false;
+		child.mark = false; // לבדוק אם צריך את זה
 		this.HeapTotalLinks++;
 	}
 
 	/**
 	 * Consolidates the root list to ensure unique degrees for all trees.
 	 */
+	//  לתקן לשימוש בשדה מס עצים ולעדכן אותו
 	private void consolidate() {
-		int arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1;
+		int arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1; // לבדוק
 		HeapNode[] rankTable = new HeapNode[arraySize];
 
 		HeapNode current = first;
