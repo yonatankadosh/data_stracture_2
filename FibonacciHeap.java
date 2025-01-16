@@ -102,25 +102,25 @@ public class FibonacciHeap
         return; 
 		}
 		if (this.min.child != null) {
-        HeapNode child = this.min.child;
-        do {
-            child.parent = null; // ניתוק מהצומת הנמחקת
-            child = child.next;
-			child.mark = false; // לבדוק אם צריך את זה
-			this.HeapTotalCuts++;
-        } while (child != this.min.child);
+			HeapNode child = this.min.child;
+			do {
+				child.parent = null; // ניתוק מהצומת הנמחקת
+				child = child.next;
+				child.mark = false; // לבדוק אם צריך את זה
+				this.HeapTotalCuts++;
+			} while (child != this.min.child);
 
-        // הוספת הילדים לרשימת השורשים של הצומת הנמחקת
-        mergeRootLists(this.min, this.min.child);
-		this.HeapNumTrees = this.HeapNumTrees + this.min.rank;
+			// הוספת הילדים לרשימת השורשים של הצומת הנמחקת
+			mergeRootLists(this.min, this.min.child);
+			this.HeapNumTrees = this.HeapNumTrees + this.min.rank;
 
-    }
+		}
 
 		// מחיקת הצומת
 		removeFromRootList(this.min);
 		this.HeapSize--;
 
-		if (doesOGmin=true){
+		if (doesOGmin){
 			this.consolidate();
 			this.updateMin();
 		}
@@ -196,19 +196,13 @@ public class FibonacciHeap
 		HeapNode[] rankTable = new HeapNode[arraySize];
 
 		HeapNode current = first;
-		int numRoots = 0;
+		int originalNumTrees = this.HeapNumTrees;
 
-		// Count the number of nodes in the root list
-		do {
-			numRoots++;
-			current = current.next;
-		} while (current != first);
-
-		while (numRoots > 0) {
+		for (int i = 0; i < originalNumTrees; i++) {
 			int rank = current.rank;
 			HeapNode next = current.next;
 
-			// Merge trees with the same degree
+			// חיבור עצים מדרגות זהות (אם התא במערך ״תפוס״)
 			while (rankTable[rank] != null) {
 				HeapNode other = rankTable[rank];
 
@@ -225,25 +219,49 @@ public class FibonacciHeap
 
 			rankTable[rank] = current;
 			current = next;
-			numRoots--;
+
 		}
+		// עדכון של הקוד שאני ממש לא בטוח לגביו - הצאט אמר לי להוסיף כשנתתי לו לבדוק
+		// Clear the root list and re-add the consolidated trees
+		first = null;
+		min = null;
+		HeapNumTrees = 0;
+
+	for (HeapNode node : rankTable) {
+		if (node != null) {
+			if (first == null) {
+				// Initialize the root list with the first non-null tree
+				first = node;
+				node.next = node;
+				node.prev = node;
+				min = node; // Initialize the minimum pointer
+			} else {
+				// Merge the node into the existing root list
+				mergeRootLists(first, node);
+
+				// Update the minimum node if necessary
+				if (node.key < min.key) {
+					min = node;
+				}
+			}
+			HeapNumTrees++; // Increment the count of trees in the root list
+		}
+	}		
 	}
+	
 
 	/**
 	 * עדכון המצביע למינימום
 	 */
-	private void updateMin(){
+	private void updateMin() {
 		HeapNode current = first;
 		do {
-        	if (this.min != null) {
-            	if (this.min == null || current.key < min.key) {
-                	this.min = current;
-            	}}
-        	current = current.next;
+			if (this.min == null || current.key < this.min.key) {
+				this.min = current;
+			}
+			current = current.next;
 		} while (current != first);
 	}
-	
-
 
 
 	/**
@@ -373,9 +391,38 @@ public class FibonacciHeap
 	 * Meld the heap with heap2
 	 *
 	 */
-	public void meld(FibonacciHeap heap2)
-	{
-		return; // should be replaced by student code   		
+	public void meld(FibonacciHeap heap2) {
+		if (heap2 == null || heap2.min == null) {
+			return; // מקרה קצה 1 - ערמה 2 היא null או ריקה
+		}
+
+		if (this.min == null) {
+			// מקרה קצה 2 - ערמה 1 ריקה
+			this.min = heap2.min;
+			this.first = heap2.first;
+			this.HeapSize = heap2.HeapSize;
+			this.HeapNumTrees = heap2.HeapNumTrees;
+			return;
+		}
+
+		// חיבור רשימות השורשים
+		HeapNode first1 = this.first;
+		HeapNode first2 = heap2.first;
+
+		HeapNode temp = first1.next;
+		first1.next = first2.next;
+		first2.next.prev = first1;
+		first2.next = temp;
+		temp.prev = first2;
+
+		// עדכון מינימום
+		if (heap2.min.key < this.min.key) {
+			this.min = heap2.min;
+		}
+
+		// עדכון שדות
+		this.HeapSize += heap2.HeapSize;
+		this.HeapNumTrees += heap2.HeapNumTrees;
 	}
 
 	/**
@@ -396,7 +443,7 @@ public class FibonacciHeap
 	 */
 	public int numTrees()
 	{
-		return this.HeapSize;
+		return this.HeapNumTrees;
 	}
 
 
