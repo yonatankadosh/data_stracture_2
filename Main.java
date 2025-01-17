@@ -30,17 +30,35 @@ public class Main {
             printHelper.printHeap();
             heap.deleteMin();
             printHelper.printHeap();
+            System.out.println("num trees:"+ heap.HeapNumTrees);
+            System.out.println("num nodes:"+ heap.HeapSize);
+            System.out.println("min rank:"+ heap.min.rank);
+            FibonacciHeap.HeapNode child = heap.min.child; 
+            FibonacciHeap.HeapNode curr = child;
+            do {
+            	System.out.println("min child:"+ curr.key);
+            	curr = curr.next;
+    		} while (curr != child);
 
             // Test 7: Delete Min with Children
             System.out.println("\nTest 7: Delete Min with Children");
-            FibonacciHeap.HeapNode nodeWithChildren = heap.insert(30, "Node with Children");
-            heap.insert(25, "Child1").parent = nodeWithChildren;
-            heap.insert(35, "Child2").parent = nodeWithChildren;
-            printHelper.printHeap();
+            //FibonacciHeap.HeapNode nodeWithChildren = heap.insert(30, "Node with Children");
+            //heap.insert(25, "Child1").parent = nodeWithChildren;
+            //heap.insert(35, "Child2").parent = nodeWithChildren;
+            //printHelper.printHeap();
             heap.deleteMin();
             printHelper.printHeap();
             System.out.println("Heap Size: " + heap.size());
             System.out.println("Number of Trees: " + heap.numTrees());
+            
+            FibonacciHeap.HeapNode firstroot = heap.first;
+            FibonacciHeap.HeapNode curr2 = heap.first;
+            do {
+            	System.out.println("root:"+ curr2.key);
+            	curr2 = curr2.next;
+    		} while (curr2 != firstroot);
+            
+            System.out.println("last ="+ heap.first.prev.key);
 
             // Test 8: Meld Heaps
             System.out.println("\nTest 8: Meld Heaps");
@@ -49,9 +67,11 @@ public class Main {
             anotherHeap.insert(15, "NodeY");
             System.out.println("Second Heap Before Meld:");
             PrintHeap printHelper2 = new PrintHeap(anotherHeap);
-            printHelper2.printHeap();
+            
             System.out.println("\nMelding Heaps...");
+            System.out.println("first");
             heap.meld(anotherHeap);
+            
             printHelper.printHeap();
             System.out.println("New Minimum After Meld: " + heap.findMin().key);
 

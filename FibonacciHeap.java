@@ -422,12 +422,13 @@ public class FibonacciHeap
 		// חיבור רשימות השורשים
 		HeapNode first1 = this.first;
 		HeapNode first2 = heap2.first;
-
-		HeapNode temp = first1.next;
-		first1.next = first2.next;
-		first2.next.prev = first1;
-		first2.next = temp;
-		temp.prev = first2;
+		HeapNode last1 = first1.prev;
+		HeapNode last2 = first2.prev;
+		
+		last1.next = first2;
+		first2.prev = last1;
+		last2.next = first1;
+		first1.prev = last2;
 
 		// עדכון מינימום
 		if (heap2.min.key < this.min.key) {
