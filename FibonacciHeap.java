@@ -159,6 +159,9 @@ public class FibonacciHeap
 			if (first == node) {
 				first = node.next; // עדכון הצומת הראשון אם נדרש
 			}
+			//איפוס מצביעים
+			node.next = node;
+			node.prev = node;
  		}	
 		this.HeapNumTrees--;
 	}
@@ -183,7 +186,7 @@ public class FibonacciHeap
 		}
 
 		parent.rank++;
-		child.mark = false; // לבדוק אם צריך את זה
+		//child.mark = false; // לבדוק אם צריך את זה
 		this.HeapTotalLinks++;
 	}
 
@@ -423,6 +426,9 @@ public class FibonacciHeap
 		// עדכון שדות
 		this.HeapSize += heap2.HeapSize;
 		this.HeapNumTrees += heap2.HeapNumTrees;
+		this.HeapTotalCuts += heap2.HeapTotalCuts;
+		this.HeapTotalLinks += heap2.HeapTotalLinks;
+
 	}
 
 	/**
