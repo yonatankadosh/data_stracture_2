@@ -195,7 +195,12 @@ public class FibonacciHeap
 	 */
 	//  לתקן לשימוש בשדה מס עצים ולעדכן אותו
 	private void consolidate() {
-		int arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1; // לבדוק
+		int arraySize;
+		if (HeapSize <= 0) {
+			arraySize = 1; // Minimum size to handle empty heap
+		} else {
+			arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1;
+		}
 		HeapNode[] rankTable = new HeapNode[arraySize];
 
 		HeapNode current = first;
@@ -257,6 +262,12 @@ public class FibonacciHeap
 	 * עדכון המצביע למינימום
 	 */
 	private void updateMin() {
+		
+		if (first == null) {
+			this.min = null; // No nodes in the heap, set min to null
+			return;
+		}
+
 		HeapNode current = first;
 		do {
 			if (this.min == null || current.key < this.min.key) {
