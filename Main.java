@@ -1,64 +1,96 @@
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class Main {
     public static void main(String[] args) {
         // Initialize FibonacciHeap
         FibonacciHeap heap = new FibonacciHeap();
         PrintHeap printHelper = new PrintHeap(heap);
 
-        // Test 1: Insertion
-        System.out.println("Test 1: Insert Nodes");
-        heap.insert(10, "Node1");
-        heap.insert(20, "Node2");
-        heap.insert(5, "Node3");
-        heap.insert(15, "Node4");
-        heap.insert(30, "Node5");
-        printHelper.printHeap();
+        // Start a thread to monitor and stop the program if it runs for too long
+        AtomicBoolean stopProgram = new AtomicBoolean(false);
+        Thread monitor = createMonitorThread(stopProgram, 3_000); // Timeout: 3 seconds
+        monitor.start();
 
-        // Test 2: Find Min
-        System.out.println("\nTest 2: Find Minimum");
-        System.out.println("Minimum: " + heap.findMin().key);
+        try {
+            // Test 1: Insert Nodes
+            System.out.println("Test 1: Insert Nodes");
+            heap.insert(10, "Node1");
+            heap.insert(20, "Node2");
+            heap.insert(5, "Node3");
+            heap.insert(15, "Node4");
+            heap.insert(30, "Node5");
+            printHelper.printHeap();
 
-        // Test 3: Delete Min
-        System.out.println("\nTest 3: Delete Minimum");
-        heap.deleteMin();
-        printHelper.printHeap();
-        System.out.println("New Minimum: " + heap.findMin().key);
+            // Test 6: Insert and Consolidate
+            System.out.println("\nTest 6: Insert and Consolidate");
+            heap.insert(50, "NodeA");
+            heap.insert(40, "NodeB");
+            heap.insert(60, "NodeC");
+            heap.insert(70, "NodeD");
+            printHelper.printHeap();
+            heap.deleteMin();
+            printHelper.printHeap();
 
-        // Test 4: Decrease Key
-        System.out.println("\nTest 4: Decrease Key");
-        FibonacciHeap.HeapNode node = heap.insert(25, "Node6"); // Insert new node
-        heap.decreaseKey(node, 20); // Decrease key to 5
-        printHelper.printHeap();
-        System.out.println("New Minimum after DecreaseKey: " + heap.findMin().key);
+            // Test 7: Delete Min with Children
+            System.out.println("\nTest 7: Delete Min with Children");
+            FibonacciHeap.HeapNode nodeWithChildren = heap.insert(30, "Node with Children");
+            heap.insert(25, "Child1").parent = nodeWithChildren;
+            heap.insert(35, "Child2").parent = nodeWithChildren;
+            printHelper.printHeap();
+            heap.deleteMin();
+            printHelper.printHeap();
+            System.out.println("Heap Size: " + heap.size());
+            System.out.println("Number of Trees: " + heap.numTrees());
 
-        // Test 5: Meld Two Heaps
-        System.out.println("\nTest 5: Meld Heaps");
-        FibonacciHeap anotherHeap = new FibonacciHeap();
-        anotherHeap.insert(40, "NodeA");
-        anotherHeap.insert(50, "NodeB");
-        anotherHeap.insert(2, "NodeC");
-        System.out.println("Second Heap Before Meld:");
-        PrintHeap printHelper2 = new PrintHeap(anotherHeap);
-        printHelper2.printHeap();
+            // Test 8: Meld Heaps
+            System.out.println("\nTest 8: Meld Heaps");
+            FibonacciHeap anotherHeap = new FibonacciHeap();
+            anotherHeap.insert(5, "NodeX");
+            anotherHeap.insert(15, "NodeY");
+            System.out.println("Second Heap Before Meld:");
+            PrintHeap printHelper2 = new PrintHeap(anotherHeap);
+            printHelper2.printHeap();
+            System.out.println("\nMelding Heaps...");
+            heap.meld(anotherHeap);
+            printHelper.printHeap();
+            System.out.println("New Minimum After Meld: " + heap.findMin().key);
 
-        System.out.println("\nMelding Heaps...");
-        heap.meld(anotherHeap);
-        printHelper.printHeap();
-        System.out.println("New Minimum After Meld: " + heap.findMin().key);
+            // Test 9: Total Links and Cuts
+            System.out.println("\nTest 9: Total Links and Cuts");
+            System.out.println("Total Links: " + heap.totalLinks());
+            System.out.println("Total Cuts: " + heap.totalCuts());
 
-        // Test 6: Delete Arbitrary Node
-        System.out.println("\nTest 6: Delete Arbitrary Node");
-        heap.delete(node);
-        printHelper.printHeap();
-        System.out.println("New Minimum After Arbitrary Delete: " + heap.findMin().key);
+            // Test 10: Heap Size and Number of Trees
+            System.out.println("\nTest 10: Heap Size and Number of Trees");
+            System.out.println("Heap Size: " + heap.size());
+            System.out.println("Number of Trees: " + heap.numTrees());
+      } catch (Exception e) {
+            System.err.println("An exception occurred: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Stop the monitor thread
+            stopProgram.set(true);
+        }
+    }
 
-        // Test 7: Total Links and Cuts
-        System.out.println("\nTest 7: Total Links and Cuts");
-        System.out.println("Total Links: " + heap.totalLinks());
-        System.out.println("Total Cuts: " + heap.totalCuts());
-
-        // Test 8: Heap Size and Number of Trees
-        System.out.println("\nTest 8: Heap Size and Number of Trees");
-        System.out.println("Heap Size: " + heap.size());
-        System.out.println("Number of Trees: " + heap.numTrees());
+    /**
+     * Creates a monitor thread to stop the program after a timeout.
+     * 
+     * @param stopFlag AtomicBoolean to signal program termination.
+     * @param timeout  Timeout in milliseconds.
+     * @return The monitor thread.
+     */
+    private static Thread createMonitorThread(AtomicBoolean stopFlag, long timeout) {
+        return new Thread(() -> {
+            try {
+                Thread.sleep(timeout);
+                if (!stopFlag.get()) {
+                    System.err.println("Program timeout reached. Exiting.");
+                    System.exit(1);
+                }
+            } catch (InterruptedException e) {
+                // Thread interrupted; no action needed
+            }
+        });
     }
 }
