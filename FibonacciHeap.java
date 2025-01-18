@@ -116,7 +116,7 @@ public class FibonacciHeap
 		}
 
 		// מחיקת הצומת
-		removeFromRootList(this.min, OGmin);
+		removeFromRootList(this.min, OGmin,true);
 		this.HeapSize--;
 
 		if (HeapSize == 0) {
@@ -154,7 +154,7 @@ public class FibonacciHeap
 	/**
 	 * מחיקת צומת ע״י שינוי מצביעים
 	 */
-	private void removeFromRootList(HeapNode node,HeapNode OGmin) {
+	private void removeFromRootList(HeapNode node,HeapNode OGmin, boolean removechildren) {
 		if (node == node.next) {
 			// Single node case
 			first = null;
@@ -182,7 +182,10 @@ public class FibonacciHeap
 		// Reset pointers to prevent accidental reuse
 		node.next = node;
 		node.prev = node;
-		node.child = null;
+		if (removechildren) {
+			node.child = null;
+		}
+		
 		HeapNumTrees--;
 	}
 
@@ -190,7 +193,7 @@ public class FibonacciHeap
 	 * חיבור עצים מדרגות שוות ע״פ המפתח
 	 */
 	private void linkNodes(HeapNode child, HeapNode parent) {
-		removeFromRootList(child,null);
+		removeFromRootList(child,null,false);
 		child.parent = parent;
 
 		if (parent.child == null) {

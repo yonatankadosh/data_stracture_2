@@ -26,6 +26,7 @@ public class Main {
             heap.deleteMin();
             printHelper.printHeap();
             System.out.println("num trees:"+ heap.HeapNumTrees);
+            System.out.println("min:"+ heap.min.key);
             System.out.println("num nodes:"+ heap.HeapSize);
             System.out.println("min rank:"+ heap.min.rank);
             FibonacciHeap.HeapNode child = heap.min.child; 
