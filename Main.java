@@ -23,11 +23,6 @@ public class Main {
 
             // Test 6: Insert and Consolidate
             System.out.println("\nTest 6: Insert and Consolidate");
-            heap.insert(50, "NodeA");
-            heap.insert(40, "NodeB");
-            heap.insert(60, "NodeC");
-            heap.insert(70, "NodeD");
-            printHelper.printHeap();
             heap.deleteMin();
             printHelper.printHeap();
             System.out.println("num trees:"+ heap.HeapNumTrees);

@@ -286,6 +286,8 @@ public class FibonacciHeap
 		}
 
 		HeapNode current = first;
+		this.min = current;
+		
 		do {
 			if (this.min == null || current.key < this.min.key) {
 				this.min = current;
