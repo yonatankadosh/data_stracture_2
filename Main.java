@@ -33,6 +33,7 @@ public class Main {
             FibonacciHeap.HeapNode curr = child;
             do {
             	System.out.println("min child:"+ curr.key);
+            	System.out.println("min child rank:"+ curr.rank);
             	curr = curr.next;
     		} while (curr != child);
 
@@ -44,6 +45,7 @@ public class Main {
             //printHelper.printHeap();
             heap.deleteMin();
             printHelper.printHeap();
+            System.out.println("min:"+ heap.min.key);
             System.out.println("Heap Size: " + heap.size());
             System.out.println("Number of Trees: " + heap.numTrees());
             

@@ -250,6 +250,9 @@ public class FibonacciHeap
 			current = next;
 
 		}
+		
+		
+		
 		// Clear the root list and re-add the consolidated trees
 		first = null;
 		min = null;
@@ -257,24 +260,10 @@ public class FibonacciHeap
 
 		for (HeapNode node : rankTable) {
 			if (node != null) {
-				if (first == null) {
-					// Initialize the root list with the first non-null tree
-					first = node;
-					node.next = node;
-					node.prev = node;
-					min = node; // Initialize the minimum pointer
-				} else {
-					// Merge the node into the existing root list
-					mergeRootLists(first, node);
-
-					// Update the minimum node if necessary
-					if (node.key < min.key) {
-						min = node;
-					}
-				}
-				HeapNumTrees++; // Increment the count of trees in the root list
+				System.out.println("key: "+node.key+" rank: "+ node.rank);
+				insert(node);
+				}		
 			}
-		}		
 	}
 	
 
