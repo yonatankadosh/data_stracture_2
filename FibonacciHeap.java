@@ -95,47 +95,96 @@ public class FibonacciHeap
 	 * Delete the minimal item
 	 * if doesOGmin is true do Consolidating and minimum update, else don't
 	 */
-	private void deleteMin(boolean doesOGmin)
-	{
+	private void deleteMin(boolean doesOGmin) {
+		
+		boolean size_decreased = false;
+
 		// מחיקה מערימה ריקה - מקרה קצה
-		if (this.min == null) {
-        return; 
+		if (this.isEmpty())
+			return; // nothing to do
+
+		// Disconnect the min's children from their parent (their parent should be null now) + add to totalCuts
+		set_childrens_parentField_null(this.min);
+
+		// Create a new heap with the min's chidren
+		FibonacciHeap new_heap = new FibonacciHeap();
+		new_heap.min = this.min.child;
+		new_heap.HeapNumTrees = this.min.rank;
+		if (HeapNumTrees == 1){
+			new_heap.HeapSize = this.HeapSize - 1;
+			size_decreased = true;
 		}
-		if (this.min.child != null) {
-			HeapNode child = this.min.child;
-			do {
-				child.parent = null; // ניתוק מהצומת הנמחקת
-				child = child.next;
-				child.mark = false; // לבדוק אם צריך את זה
-				this.HeapTotalCuts++;
-			} while (child != this.min.child);
+		else
+			new_heap.HeapSize = 0; // doesn't really matter for meld_call
 
-			// הוספת הילדים לרשימת השורשים של הצומת הנמחקת
-			mergeRootLists(this.min, this.min.child);
-			this.HeapNumTrees = this.HeapNumTrees + this.min.rank;
-
-		}
-
-		// מחיקת הצומת
-		removeFromRootList(this.min);
-		this.HeapSize--;
+		//Edge Case - num of trees is 1
+		if (this.HeapNumTrees == 1)
+			this.min = null;
+		else
+			// skip the min pointer in the root's list
+			skip_node_in_root_list(this, this.min, true);
+		
+		// meld heap with new heap
+		this.meldCall(new_heap, false);
+		
 
 		if (doesOGmin){
 			this.consolidate();
 			this.updateMin();
 		}
+		if (!size_decreased)
+			this.HeapSize--;
 
-            //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש
-            // אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
+
 	}
 	
 	// פונקציות עזר למחיקה
+
+	/*
+	 * given a parent node, the function sets the children node's "parent" field to none
+	 */
+	public void set_childrens_parentField_null(HeapNode parent){
+		int parent_rank = parent.rank;
+		HeapNode curr_child = parent.child;
+		for(int i = 0; i < parent_rank; i++){
+			curr_child.parent = null;
+			curr_child = curr_child.next;
+		}
+		
+		this.HeapTotalCuts += parent_rank;
+	}
+
+	/**
+	 * מחיקת שורש מרשימת השורשים
+	 */
+	public void skip_node_in_root_list(FibonacciHeap heap, HeapNode node, boolean handleMinArbitrary){
+		HeapNode old_min = heap.findMin();
+		boolean isMin = false;
+		if (old_min == node){
+			isMin = true;
+		}
+
+		HeapNode node_next = node.next;
+		HeapNode node_prev = node.prev;
+		node_prev.next = node_next;
+		node_next.prev = node_prev;
+		heap.HeapNumTrees--;
+
+		if (handleMinArbitrary && isMin)
+		{
+			heap.min = node_next;
+			heap.updateMin();
+		}
+	}
+
+
+
 	/**
 	 * חיבור שתי רשימות שורשים
 	 */
 	private void mergeRootLists(HeapNode node1, HeapNode node2) {
 		if (node1 == null || node2 == null) {
-			return; // מקרה קצה - אחד הרשימות ריקה
+			return; // One of the lists is empty
 		}
 
 		HeapNode temp = node1.next;
@@ -143,6 +192,11 @@ public class FibonacciHeap
 		node2.next.prev = node1;
 		node2.next = temp;
 		temp.prev = node2;
+
+		// Update min if necessary
+		if (node2.key < min.key) {
+			min = node2;
+		}
 	}
 
 	/**
@@ -150,111 +204,105 @@ public class FibonacciHeap
 	 */
 	private void removeFromRootList(HeapNode node) {
 		if (node == node.next) {
-			// מחיקת הצומת היחיד ברשימה
+			// Single node case
 			first = null;
-			this.min = null;
+			min = null;
 		} else {
 			node.prev.next = node.next;
 			node.next.prev = node.prev;
 			if (first == node) {
-				first = node.next; // עדכון הצומת הראשון אם נדרש
+				first = node.next; // Update first if necessary
 			}
-			//איפוס מצביעים
-			node.next = node;
-			node.prev = node;
- 		}	
-		this.HeapNumTrees--;
-	}
+			if (min == node) {
+				updateMin(); // Update min explicitly
+			}
+		}
 
+		// Reset pointers to prevent accidental reuse
+		node.next = node;
+		node.prev = node;
+		HeapNumTrees--;
+	}
 
 	/**
 	 * חיבור עצים מדרגות שוות ע״פ המפתח
 	 */
-	private void linkNodes(HeapNode child, HeapNode parent) {
-		removeFromRootList(child);
-		child.parent = parent;
-
-		if (parent.child == null) {
-			parent.child = child;
-			child.next = child;
-			child.prev = child;
-		} else {
-			child.next = parent.child.next;
-			child.prev = parent.child;
-			parent.child.next.prev = child;
-			parent.child.next = child;
+	private void linkNodes(HeapNode ndoe1, HeapNode node2) {
+		HeapNode x = ndoe1;
+		HeapNode y = node2;
+		// want to create two nodes such that x.key <= y.key. if not true, swap them.
+		// if not - switch them
+		if (node2.key < ndoe1.key){
+			x = node2;
+			y = ndoe1;
 		}
 
-		parent.rank++;
-		//child.mark = false; // לבדוק אם צריך את זה
+		// remove y from the root list
+		HeapNode Orig_next_y = y.next;
+		HeapNode orig_prev_y = y.prev;
+		orig_prev_y.next = Orig_next_y;
+		Orig_next_y.prev = orig_prev_y;
+
+		// Edge case - their ranks are zero
+		if (x.rank == 0){
+			y.next = y;
+			y.prev = y;
+		}
+
+		else{ // their ranks >= 1
+			y.next = x.child;
+			y.prev = x.child.prev;
+			x.child.prev.next = y;
+			x.child.prev = y;
+		}
+
+		x.child = y;
+		y.parent = x;
+		x.rank++;
+
+		// update the number of links for the heap
 		this.HeapTotalLinks++;
+
+		// decrease number of trees in the heap
+		this.HeapNumTrees--;
 	}
 
 	/**
 	 * Consolidates the root list to ensure unique degrees for all trees.
 	 */
-	//  לתקן לשימוש בשדה מס עצים ולעדכן אותו
 	private void consolidate() {
-		int arraySize;
-		if (HeapSize <= 0) {
-			arraySize = 1; // Minimum size to handle empty heap
-		} else {
-			arraySize = (int) Math.ceil(Math.log(HeapSize) / Math.log(2)) + 1;
+		if (this.min == null)
+			return;
+		
+		int n = this.HeapSize;
+		double log_value;
+		if (this.HeapSize <= 0){
+		log_value = 1;
 		}
-		HeapNode[] rankTable = new HeapNode[arraySize];
+		else {
+		log_value = Math.log(n + 1) / Math.log(2);
+		}
+		HeapNode[] bucket_arr = new HeapNode[(int) Math.ceil(log_value)];
+		HeapNode curr_root = this.min;
+		int times_to_iterate = this.HeapNumTrees;
 
-		HeapNode current = first;
-		int originalNumTrees = this.HeapNumTrees;
+		for (int i = 0; i < times_to_iterate; i++){
+			HeapNode next_root = curr_root.next;
+			HeapNode curr_inner = curr_root;  // keep a pointer to the next root (for cases when the pointers shift)
 
-		for (int i = 0; i < originalNumTrees; i++) {
-			int rank = current.rank;
-			HeapNode next = current.next;
-
-			// חיבור עצים מדרגות זהות (אם התא במערך ״תפוס״)
-			while (rankTable[rank] != null) {
-				HeapNode other = rankTable[rank];
-
-				if (current.key > other.key) {
-					HeapNode temp = current;
-					current = other;
-					other = temp;
-				}
-
-				linkNodes(other, current);
-				rankTable[rank] = null;
-				rank++;
+			while (bucket_arr[curr_inner.rank] != null){
+				HeapNode other = bucket_arr[curr_inner.rank];
+				bucket_arr[curr_inner.rank] = null; // empty the bucket
+				this.linkNodes(curr_inner, other);
+				
+				if (curr_inner.parent != null) // always get the root of the linked tree
+					curr_inner = curr_inner.parent; 
 			}
-
-			rankTable[rank] = current;
-			current = next;
-
+			bucket_arr[curr_inner.rank] = curr_inner;
+			if (curr_inner.key < this.min.key)
+				this.min = curr_inner;
+			curr_root = next_root;
 		}
-		// עדכון של הקוד שאני ממש לא בטוח לגביו - הצאט אמר לי להוסיף כשנתתי לו לבדוק
-		// Clear the root list and re-add the consolidated trees
-		first = null;
-		min = null;
-		HeapNumTrees = 0;
-
-	for (HeapNode node : rankTable) {
-		if (node != null) {
-			if (first == null) {
-				// Initialize the root list with the first non-null tree
-				first = node;
-				node.next = node;
-				node.prev = node;
-				min = node; // Initialize the minimum pointer
-			} else {
-				// Merge the node into the existing root list
-				mergeRootLists(first, node);
-
-				// Update the minimum node if necessary
-				if (node.key < min.key) {
-					min = node;
-				}
-			}
-			HeapNumTrees++; // Increment the count of trees in the root list
-		}
-	}		
 	}
 	
 
@@ -405,42 +453,54 @@ public class FibonacciHeap
 	 * Meld the heap with heap2
 	 *
 	 */
-	public void meld(FibonacciHeap heap2) {
-		if (heap2 == null || heap2.min == null) {
-			return; // מקרה קצה 1 - ערמה 2 היא null או ריקה
+	public void meld(FibonacciHeap heap2)
+	{
+		meldCall(heap2, true);
+	}
+
+	public void meldCall(FibonacciHeap heap2, Boolean sumLinksCuts){
+		if(this.isEmpty() && heap2.isEmpty()){
+			return;
 		}
 
-		if (this.min == null) {
-			// מקרה קצה 2 - ערמה 1 ריקה
+		if(heap2.isEmpty()){
+			return;
+		}
+
+		if(this.isEmpty()){
 			this.min = heap2.min;
-			this.first = heap2.first;
+			this.HeapTotalCuts = heap2.HeapTotalCuts;
+			this.HeapTotalLinks = heap2.HeapTotalLinks;
 			this.HeapSize = heap2.HeapSize;
 			this.HeapNumTrees = heap2.HeapNumTrees;
 			return;
 		}
 
-		// חיבור רשימות השורשים
-		HeapNode first1 = this.first;
-		HeapNode first2 = heap2.first;
-		HeapNode last1 = first1.prev;
-		HeapNode last2 = first2.prev;
-		
+		HeapNode first1 = this.min; //pointer to first
+		HeapNode first2 = heap2.min;
+		HeapNode last1 = this.min.prev;
+		HeapNode last2 = heap2.min.prev;
+
+		//connect roots
 		last1.next = first2;
 		first2.prev = last1;
+
 		last2.next = first1;
 		first1.prev = last2;
 
-		// עדכון מינימום
-		if (heap2.min.key < this.min.key) {
+		//set new minimum
+		if(this.min.key >= heap2.min.key){
 			this.min = heap2.min;
 		}
+		
+		this.HeapNumTrees = this.HeapNumTrees + heap2.HeapNumTrees;
 
-		// עדכון שדות
-		this.HeapSize += heap2.HeapSize;
-		this.HeapNumTrees += heap2.HeapNumTrees;
-		this.HeapTotalCuts += heap2.HeapTotalCuts;
-		this.HeapTotalLinks += heap2.HeapTotalLinks;
-
+		//meld all other fields - if outer heap
+		if(sumLinksCuts){
+			this.HeapTotalCuts = this.HeapTotalCuts + heap2.HeapTotalCuts;
+			this.HeapTotalLinks = this.HeapTotalLinks + heap2.HeapTotalLinks;
+			this.HeapSize = this.HeapSize + heap2.HeapSize;
+		}
 	}
 
 	/**
@@ -463,6 +523,12 @@ public class FibonacciHeap
 	{
 		return this.HeapNumTrees;
 	}
+
+	public boolean isEmpty()
+	{
+		return this.min == null;
+	}
+
 
 
 	/**
