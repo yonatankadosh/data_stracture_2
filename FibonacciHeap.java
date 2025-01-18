@@ -86,7 +86,7 @@ public class FibonacciHeap
 	 */
 	public void deleteMin()
 	{
-		deleteMin(true);
+		deleteMin(true,null);
 
 	}
 	
@@ -95,28 +95,28 @@ public class FibonacciHeap
 	 * Delete the minimal item
 	 * if doesOGmin is true do Consolidating and minimum update, else don't
 	 */
-	private void deleteMin(boolean doesOGmin) {
+	private void deleteMin(boolean doesOGmin,HeapNode OGmin) {
 		// מחיקה מערימה ריקה - מקרה קצה
 		if (this.min == null) {
         	return; 
 		}
+		
 		if (this.min.child != null) {
 			HeapNode child = this.min.child;
 			do {
 				child.parent = null; // ניתוק מהצומת הנמחקת
-				child = child.next;
 				child.mark = false; // לבדוק אם צריך את זה
+				child = child.next;
 				this.HeapTotalCuts++;
 			} while (child != this.min.child);
 
 			// הוספת הילדים לרשימת השורשים של הצומת הנמחקת
 			mergeRootLists(this.min, this.min.child);
 			this.HeapNumTrees = this.HeapNumTrees + this.min.rank;
-
 		}
 
 		// מחיקת הצומת
-		removeFromRootList(this.min);
+		removeFromRootList(this.min, OGmin);
 		this.HeapSize--;
 
 		if (HeapSize == 0) {
@@ -126,10 +126,8 @@ public class FibonacciHeap
 			return;
     	}
 
-
 		if (doesOGmin){
 			this.consolidate();
-			this.updateMin();
 		}
 
             //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש
@@ -140,45 +138,51 @@ public class FibonacciHeap
 	/**
 	 * חיבור שתי רשימות שורשים
 	 */
-	private void mergeRootLists(HeapNode node1, HeapNode node2) {
-		if (node1 == null || node2 == null) {
+	private void mergeRootLists(HeapNode minnode, HeapNode child) {
+		if (minnode == null || child == null) {
 			return; // One of the lists is empty
 		}
-
-		HeapNode temp = node1.next;
-		node1.next = node2.next;
-		node2.next.prev = node1;
-		node2.next = temp;
-		temp.prev = node2;
-
-		// Update min if necessary
-		if (node2.key < min.key) {
-			min = node2;
-		}
+		
+		HeapNode minnode_next = minnode.next;
+		HeapNode lastchild = child.prev;
+		minnode.next = child;
+		child.prev = minnode;
+		lastchild.next = minnode_next;
+		minnode_next.prev = lastchild;
 	}
 
 	/**
 	 * מחיקת צומת ע״י שינוי מצביעים
 	 */
-	private void removeFromRootList(HeapNode node) {
+	private void removeFromRootList(HeapNode node,HeapNode OGmin) {
 		if (node == node.next) {
 			// Single node case
 			first = null;
 			min = null;
-		} else {
-			node.prev.next = node.next;
-			node.next.prev = node.prev;
+		} 
+		else {
+			HeapNode node_next = node.next;
+			HeapNode node_prev = node.prev;
+			node_prev.next = node_next;
+			node_next.prev = node_prev;
+			
 			if (first == node) {
-				first = node.next; // Update first if necessary
+				first = node_next; // Update first if necessary
 			}
+			// Update min if necessary
 			if (min == node) {
-				updateMin(); // Update min explicitly
+				if(OGmin==null) {
+					this.updateMin();
+				} else {
+					this.min = OGmin;
+				}
 			}
 		}
 
 		// Reset pointers to prevent accidental reuse
 		node.next = node;
 		node.prev = node;
+		node.child = null;
 		HeapNumTrees--;
 	}
 
@@ -186,7 +190,7 @@ public class FibonacciHeap
 	 * חיבור עצים מדרגות שוות ע״פ המפתח
 	 */
 	private void linkNodes(HeapNode child, HeapNode parent) {
-		removeFromRootList(child);
+		removeFromRootList(child,null);
 		child.parent = parent;
 
 		if (parent.child == null) {
@@ -380,7 +384,7 @@ public class FibonacciHeap
 	    	// להפחית את המפתח של הצומת ל-Integer.MIN_VALUE כדי שיהפוך למינימום
 	        decreaseKey(x, x.key - Integer.MIN_VALUE);
 	        // מחיקת צומת שהיא לא מינימום אמיתי
-	        deleteMin(false);
+	        deleteMin(false, OGmin);
 	        this.min = OGmin;
 	    }
 	
