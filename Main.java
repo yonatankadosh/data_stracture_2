@@ -14,14 +14,34 @@ public class Main {
         try {
             // Test 1: Insert Nodes
             System.out.println("Test 1: Insert Nodes");
-            heap.insert(10, "Node1");
-            heap.insert(20, "Node2");
-            heap.insert(5, "Node3");
-            heap.insert(15, "Node4");
-            heap.insert(30, "Node5");
-            printHelper.printHeap();
 
-            // Test 6: Insert and Consolidate
+            FibonacciHeap.HeapNode to_decrease_10 = null;
+            FibonacciHeap.HeapNode to_delete_12 = null;
+            for (int i = 0; i < 17; i++) {
+                if (i==11){
+                    to_decrease_10 = heap.insert(i, "Node");
+                }
+                else if (i==12){
+                    to_delete_12 = heap.insert(i, "Node");
+                }
+                else {
+                    heap.insert(i, "Node");
+                }
+            }
+            printHelper.printHeap();
+            heap.deleteMin();
+            printHelper.printHeap();
+            System.out.println("\nTest 9: Total Links and Cuts");
+            System.out.println("Total Links: " + heap.totalLinks());
+            System.out.println("Total Cuts: " + heap.totalCuts());
+
+            heap.delete(to_delete_12);
+            printHelper.printHeap();
+            System.out.println("\nTest 9: Total Links and Cuts");
+            System.out.println("Total Links: " + heap.totalLinks());
+            System.out.println("Total Cuts: " + heap.totalCuts());
+
+/*            // Test 6: Insert and Consolidate
             System.out.println("\nTest 6: Insert and Consolidate");
             heap.deleteMin();
             printHelper.printHeap();
@@ -39,10 +59,6 @@ public class Main {
 
             // Test 7: Delete Min with Children
             System.out.println("\nTest 7: Delete Min with Children");
-            //FibonacciHeap.HeapNode nodeWithChildren = heap.insert(30, "Node with Children");
-            //heap.insert(25, "Child1").parent = nodeWithChildren;
-            //heap.insert(35, "Child2").parent = nodeWithChildren;
-            //printHelper.printHeap();
             heap.deleteMin();
             printHelper.printHeap();
             System.out.println("min:"+ heap.min.key);
@@ -58,11 +74,11 @@ public class Main {
             
             System.out.println("last ="+ heap.first.prev.key);
 
-            // Test 8: Meld Heaps
+           // Test 8: Meld Heaps
             System.out.println("\nTest 8: Meld Heaps");
             FibonacciHeap anotherHeap = new FibonacciHeap();
-            anotherHeap.insert(5, "NodeX");
-            anotherHeap.insert(15, "NodeY");
+            anotherHeap.insert(50, "NodeX");
+            anotherHeap.insert(60, "NodeY");
             System.out.println("Second Heap Before Meld:");
             PrintHeap printHelper2 = new PrintHeap(anotherHeap);
             
@@ -82,7 +98,7 @@ public class Main {
             System.out.println("\nTest 10: Heap Size and Number of Trees");
             System.out.println("Heap Size: " + heap.size());
             System.out.println("Number of Trees: " + heap.numTrees());
-      } catch (Exception e) {
+*/      } catch (Exception e) {
             System.err.println("An exception occurred: " + e.getMessage());
             e.printStackTrace();
         } finally {
