@@ -14,6 +14,7 @@ public class FibonacciHeap
 	public int HeapTotalCuts;
 	
 	
+	
 	/**
 	 *
 	 * Constructor to initialize an empty heap.
@@ -28,7 +29,8 @@ public class FibonacciHeap
 		this.HeapTotalLinks = 0;
 		this.HeapTotalCuts = 0;
 	}
-
+	
+	
 	/**
 	 * 
 	 * pre: key > 0
@@ -53,10 +55,12 @@ public class FibonacciHeap
 	        first = newNode; // הצומת הראשון בהיפ
 	    } else {
 	        // הוספת הצומת לרשימת השורשים
-	        newNode.next = first;
-	        newNode.prev = first.prev;
-	        first.prev.next = newNode;
-	        first.prev = newNode;
+	    	HeapNode last = first.prev;
+	    	newNode.next = first;
+	    	first.prev = newNode;
+	        newNode.prev = last;
+	        last.next = newNode;
+	        
 	        // עדכון הראשון (לשמור על first)
 	        first = newNode;
 	        // עדכון המינימום אם המפתח של הצומת החדש קטן מהמינימום
@@ -130,9 +134,7 @@ public class FibonacciHeap
 			this.consolidate();
 		}
 
-            //  מאי: תשים לב להפריד בין שני מקרים - אם מתקבל קלט "אמת"  צריך לעשות מחיקה כמו שלמדנו בכיתה, אחרת, צריך למחוק את המינימום ולא לעשות את תהליך החיבור עצים רק להוסיף אותם לשורש
-            // אם מוחקים צומת שהוא לא באמת המינימום , כלומר המקרה בו מתקבל "שקר" אין צורך לעדכן את המינימום בסיום הפעולה
-	}
+        }
 	
 	// פונקציות עזר למחיקה
 	/**
@@ -240,6 +242,13 @@ public class FibonacciHeap
 					current = other;
 					other = temp;
 				}
+				// הוספתי רק את התנאי הזה - ללא מחיקות או שנויים במקומות אחרים
+				if (current.key==other.key && this.min == other) {
+					HeapNode temp = current;
+					current = other;
+					other = temp;
+				}
+				// עד כאן
 
 				linkNodes(other, current);
 				rankTable[rank] = null;
@@ -252,7 +261,6 @@ public class FibonacciHeap
 		}
 		
 		
-		
 		// Clear the root list and re-add the consolidated trees
 		first = null;
 		min = null;
@@ -260,8 +268,11 @@ public class FibonacciHeap
 
 		for (HeapNode node : rankTable) {
 			if (node != null) {
-				System.out.println("key: "+node.key+" rank: "+ node.rank);
+				node.next = node;
+				node.prev = node;
+				//System.out.println("key: "+ node.key +" rank: "+ node.rank);
 				insert(node);
+				//System.out.println("first key: "+ first.key +" first next: "+ first.next.key);
 				}		
 			}
 	}
@@ -297,7 +308,10 @@ public class FibonacciHeap
 	 * 
 	 */
 	public void decreaseKey(HeapNode x, int diff) 
-	{    
+	{  
+		if(x==null) {
+			return;
+		}
 		// הפחתת המפתח של הצומת
 	    x.key = x.key - diff;
 
@@ -498,6 +512,10 @@ public class FibonacciHeap
 			this.mark = false;
 			this.rank = 0;
 			this.child = null;
+		}
+		
+		public int getKey() {
+			return this.key;
 		}
 	}
 }
